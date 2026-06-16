@@ -1,9 +1,10 @@
 # MimicServer | v1.0
 
-> A [PhoticLabs](https://github.com/photiclabs) product.
+> A [PhoticLabs](https://github.com/Photic-Labs/) product.
 
-**MimicServer** is a local-first API mocking engine and gateway for developers.  
-Define mock routes, serve JSON responses instantly, and inspect live traffic —  
+**MimicServer** is a local-first API mocking engine and gateway for developers.
+Define mock routes (organized into groups), serve JSON responses instantly with
+path-parameter support (`/api/user/:id`), and inspect live traffic —
 all from a fast, native desktop app with zero cloud dependency.
 
 ---
@@ -13,7 +14,7 @@ all from a fast, native desktop app with zero cloud dependency.
 | Problem | MimicServer's Answer |
 |---|---|
 | Mock platforms require internet | Runs 100% locally — no account, no cloud |
-| Electron apps are heavy and slow | Native Rust binary — `< 30MB`, instant startup |
+| Electron apps are heavy and slow | Native Rust binary — `< 15MB`, instant startup |
 | JSON config files break silently | SQLite — relational, transactional, crash-safe |
 | Server restarts drop in-flight requests | Hot reload via `Arc<RwLock<>>` — zero downtime |
 | Traffic is invisible during development | Built-in traffic log — every request recorded |
@@ -23,9 +24,12 @@ all from a fast, native desktop app with zero cloud dependency.
 ## Features
 
 - **Mock any HTTP endpoint** — define method, path, status code, and a `.json` response file
+- **Path-parameter support** — use `:id` segments in paths (`/api/user/:id`)
+- **Organize routes in groups** — logical folders for your API endpoints
 - **Instant hot reload** — save a route and it is live immediately, no server restart
 - **Traffic log** — see every request: method, status, URL, latency, timestamp
-- **Port configuration** — run on any port via the settings panel
+- **Port & prefix configuration** — run on any port and/or behind a global prefix via the settings panel
+- **Light/Dark theme** — toggle between themes in settings
 - **Health endpoint** — `GET /health` always available to confirm the server is alive
 - **Cross-platform** — single binary for Windows, macOS, and Linux
 - **Branded UI** — dark, professional developer-tool aesthetic built on the PhoticLabs design system
@@ -40,14 +44,13 @@ all from a fast, native desktop app with zero cloud dependency.
 | Design System | `pl-components` (PhotoicLabs internal crate) |
 | Async Runtime | Tokio |
 | HTTP | Axum + Hyper |
-| Database | SQLite via `rusqlite` |
+| Database | SQLite via `rusqlite` (WAL mode, foreign keys) |
 | Payload Storage | Raw `.json` files on disk |
 
 ---
 
 ## Out of Scope (by design)
 
-- No path parameters (`/api/user/:id`) — ignored
 - No request header inspection — ignored
 - No response templating — static `.json` files only
 - No authentication on the mock server
@@ -67,7 +70,7 @@ all from a fast, native desktop app with zero cloud dependency.
 
 ```bash
 # Clone the repository
-git clone https://github.com/photiclabs/mimic-server.git
+git clone https://github.com/Photic-Labs/mimic-server.git
 cd mimic-server
 
 # Run in development mode
@@ -78,20 +81,25 @@ cargo build --release
 ```
 
 The app opens a native window.  
-The database (`mimic.db`) is created automatically on first run.
+The database is created automatically on first run in your platform's data directory:
+
+- **macOS:** `~/Library/Application Support/MimicServer/mimic_server_v1.db`
+- **Linux:** `~/.local/share/MimicServer/mimic_server_v1.db`
+- **Windows:** `C:\Users\<USER>\AppData\Roaming\MimicServer\mimic_server_v1.db`
 
 ### First Use
 
 1. Open the app
 2. Click **▶ Start Server** in the top bar
 3. The server binds to `localhost:8080` by default
-4. Add a route in the sidebar — set method, path, status code, and a `.json` file
-5. Hit the endpoint from your app or `curl`
-6. Watch the request appear in the Traffic Log panel
+4. Add an API group in the sidebar, then add routes inside it
+5. Select a route to edit — set method, path (supports `:id` params), status code, and a `.json` file
+6. Hit the endpoint from your app or `curl`
+7. Watch the request appear in the Traffic Log panel
 
 ```bash
 # Confirm the server is alive
-curl http://localhost:8080/~health
+curl http://localhost:8080/health
 
 # Hit a configured mock route
 curl http://localhost:8080/api/your-route
@@ -101,9 +109,12 @@ curl http://localhost:8080/api/your-route
 
 ## Configuration
 
-Port is stored in the `app_config` SQLite table.  
-Default: `8080`.  
-Change it in the Settings panel — takes effect on next server start.
+Port and API prefix are stored in the `app_config` SQLite table.
+Default port: `8080`. Default prefix: empty.
+Change them in the Settings panel — takes effect on next server start.
+
+The global prefix applies to all routes. For example, with prefix `/api/v1`,
+a route at `/users` is served at `/api/v1/users`.
 
 ---
 
@@ -144,11 +155,13 @@ X-Powered-By:        MimicServer
 | Route matched, `.json` file missing | `500` | `response_file_not_found` |
 | Route matched, file is invalid JSON | `500` | `invalid_json_file` |
 | Route matched, no file configured | `501` | `no_response_file_configured` |
-| No matching route | `404` | `route_not_found` |
+| No matching route (not even pattern) | `404` | `route_not_found` |
 
 
 ---
 
 ## License
 
-MIT © [PhotoicLabs](https://github.com/photiclabs)
+GNU General Public License v3.0 © [PhoticLabs](https://github.com/Photic-Labs)
+
+See [LICENSE](LICENSE) for the full text.
