@@ -1,4 +1,4 @@
-# MimicServer | v1.0
+# <img src="docs/screenshots/app-icon.png" alt="MimicServer icon" width="32" height="32"> MimicServer | v1.0
 
 > A [PhoticLabs](https://github.com/Photic-Labs/) product.
 
@@ -6,6 +6,8 @@
 Define mock routes (organized into groups), serve JSON responses instantly with
 path-parameter support (`/api/user/:id`), and inspect live traffic —
 all from a fast, native desktop app with zero cloud dependency.
+
+![Main window](docs/screenshots/main_window.png)
 
 ---
 
@@ -35,6 +37,8 @@ all from a fast, native desktop app with zero cloud dependency.
 - **Branded UI** — dark, professional developer-tool aesthetic built on the PhoticLabs design system
 
 ---
+
+
 
 ## Tech Stack
 
@@ -115,6 +119,8 @@ Change them in the Settings panel — takes effect on next server start.
 
 The global prefix applies to all routes. For example, with prefix `/api/v1`,
 a route at `/users` is served at `/api/v1/users`.
+
+![Settings panel](docs/screenshots/settings_panel.png)
 
 ---
 
