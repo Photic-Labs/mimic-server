@@ -6,7 +6,7 @@ description = "The UI for the Mimic server"
 authors = ["Photic Labs Devs <photiclabs@proton.me>"]
 
 [[bin]]
-name = "mimic-server"
+name = "MimicServer"
 path = "src/main.rs"
 
 # ── Bundle metadata (for cargo-bundle packaging) ──────────────────────────────
@@ -26,6 +26,9 @@ icon = "src/assets/icons/icon.ico"
 # Linux configuration
 [package.metadata.bundle.linux]
 icon = ["src/assets/icons/linux_icon.png"]
+
+[build-dependencies]
+embed-resource = { version = "2.4" }
 
 [dependencies]
 mimic-core   = { path = "../mimic-core" }
