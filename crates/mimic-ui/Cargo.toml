@@ -1,0 +1,43 @@
+[package]
+name    = "mimic-ui"
+version = "0.1.0"
+edition = "2021"
+description = "The UI for the Mimic server"
+authors = ["Photic Labs Devs <photiclabs@proton.me>"]
+
+[[bin]]
+name = "mimic-server"
+path = "src/main.rs"
+
+# ── Bundle metadata (for cargo-bundle packaging) ──────────────────────────────
+[package.metadata.bundle]
+name              = "Mimic Server"
+identifier        = "io.photiclabs.mimicserver"
+version           = "1.0.0"
+copyright         = "© 2026 PhotoicLabs"
+category          = "Developer Tool"
+short_description = "Local-first API mocking engine and gateway"
+icon              = ["crates/mimic-ui/src/assets/icons/icon.icns"]
+
+# Windows configuration
+[package.metadata.bundle.windows]
+icon = "src/assets/icons/icon.ico"
+
+# Linux configuration
+[package.metadata.bundle.linux]
+icon = ["src/assets/icons/linux_icon.png"]
+
+[dependencies]
+mimic-core   = { path = "../mimic-core" }
+mimic-server = { path = "../mimic-server" }
+pl-components = { path = "../pl-components" }
+eframe       = { version = "0.34", features = ["default_fonts"] }
+egui         = { version = "0.34" }
+rusqlite   = { workspace = true }
+tokio        = { workspace = true }
+anyhow       = { workspace = true }
+tracing      = { workspace = true }
+tracing-subscriber = { workspace = true }
+rand         = { version = "0.8" }
+rfd          = { version = "0.15" }
+regex        = { version = "1.10" }

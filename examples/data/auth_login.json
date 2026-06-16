@@ -1,0 +1,11 @@
+{
+  "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.mock_payload.mock_signature",
+  "token_type": "Bearer",
+  "expires_in": 3600,
+  "refresh_token": "rt_mock_9f8e7d6c5b4a3210",
+  "user": {
+    "id": "usr_01HX9K2M3N4P5Q6R7S8T9U0V",
+    "email": "mahadeer@photiclabs.io",
+    "role": "admin"
+  }
+}

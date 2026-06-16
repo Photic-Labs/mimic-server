@@ -1,0 +1,17 @@
+{
+  "id": "ord_78KX92LM",
+  "status": "shipped",
+  "created_at": "2025-06-13T05:58:00Z",
+  "shipped_at": "2025-06-13T10:00:00Z",
+  "tracking_number": "TRK-MOCK-00123456",
+  "items": [
+    {
+      "product_id": "prod_001",
+      "name": "MimicServer Pro",
+      "quantity": 1,
+      "unit_price": 49.99
+    }
+  ],
+  "total": 49.99,
+  "currency": "USD"
+}

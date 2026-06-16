@@ -1,0 +1,28 @@
+[workspace]
+resolver = "2"
+members = [
+    "crates/mimic-core",
+    "crates/mimic-server",
+    "crates/mimic-ui",
+    "crates/pl-components",
+]
+
+[workspace.dependencies]
+# Shared versions pinned once here, referenced by crates
+tokio       = { version = "1",  features = ["full"] }
+axum        = { version = "0.7" }
+rusqlite    = { version = "0.31", features = ["bundled"] }
+serde       = { version = "1",  features = ["derive"] }
+serde_json  = { version = "1" }
+anyhow      = { version = "1" }
+tracing     = { version = "0.1" }
+tracing-subscriber = { version = "0.3", features = ["env-filter", "fmt", "registry"] }
+chrono      = { version = "0.4", features = ["serde"] }
+
+# ── Release profile — applies to every crate in the workspace ────────────────
+[profile.release]
+opt-level     = 3       # maximum optimization
+lto           = true    # link-time optimization — smaller + faster
+codegen-units = 1       # best LTO output
+strip         = true    # strip debug symbols — smaller binary
+panic         = "abort" # no stack unwinding — smaller binary

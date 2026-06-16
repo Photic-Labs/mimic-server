@@ -1,0 +1,9 @@
+[package]
+name = "pl-components"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+eframe       = { version = "0.34", features = ["default_fonts"] }
+egui         = { version = "0.34" }
+anyhow       = { workspace = true }

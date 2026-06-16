@@ -1,0 +1,693 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>MimicServer — API Tester</title>
+
+        <!-- Fonts -->
+        <link
+            href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+            rel="stylesheet"
+        />
+
+        <!-- Tailwind CSS -->
+        <script src="https://cdn.tailwindcss.com"></script>
+
+        <!-- Highlight.js (JSON syntax highlighting) -->
+        <link
+            rel="stylesheet"
+            href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css"
+        />
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+
+        <!-- Alpine.js -->
+        <script
+            defer
+            src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"
+        ></script>
+
+        <script>
+            tailwind.config = {
+                theme: {
+                    extend: {
+                        fontFamily: {
+                            sans: ["Manrope", "sans-serif"],
+                            mono: ["JetBrains Mono", "monospace"],
+                        },
+                        colors: {
+                            brand: {
+                                blue: "#2563FF",
+                                "blue-light": "#CCD4FF",
+                                purple: "#7C3AED",
+                                navy: "#00117",
+                                "off-white": "#F5F7FA",
+                            },
+                            surface: {
+                                bg: "#0D0E11",
+                                card: "#13151A",
+                                border: "#1E2028",
+                                hover: "#1A1D24",
+                                input: "#0F1117",
+                            },
+                        },
+                    },
+                },
+            };
+        </script>
+
+        <style>
+            body {
+                background-color: #0d0e11;
+                font-family: "Manrope", sans-serif;
+            }
+
+            /* Scrollbar */
+            ::-webkit-scrollbar {
+                width: 6px;
+                height: 6px;
+            }
+            ::-webkit-scrollbar-track {
+                background: #13151a;
+            }
+            ::-webkit-scrollbar-thumb {
+                background: #1e2028;
+                border-radius: 3px;
+            }
+            ::-webkit-scrollbar-thumb:hover {
+                background: #2563ff55;
+            }
+
+            /* Highlight.js override — match our surface */
+            .hljs {
+                background: transparent !important;
+                padding: 0 !important;
+                font-family: "JetBrains Mono", monospace;
+                font-size: 13px;
+                line-height: 1.7;
+            }
+
+            /* Status badge pulse */
+            @keyframes pulse-dot {
+                0%,
+                100% {
+                    opacity: 1;
+                }
+                50% {
+                    opacity: 0.4;
+                }
+            }
+            .pulse {
+                animation: pulse-dot 1.4s ease-in-out infinite;
+            }
+
+            /* Spinner */
+            @keyframes spin {
+                to {
+                    transform: rotate(360deg);
+                }
+            }
+            .spinner {
+                animation: spin 0.7s linear infinite;
+            }
+
+            /* Select arrow override */
+            select {
+                appearance: none;
+                -webkit-appearance: none;
+                background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236B7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+                background-repeat: no-repeat;
+                background-position: right 14px center;
+                padding-right: 36px !important;
+            }
+
+            /* Focus ring */
+            input:focus,
+            select:focus {
+                outline: none;
+                box-shadow: 0 0 0 2px #2563ff44;
+            }
+
+            /* Method badge colors */
+            .method-GET {
+                color: #34d399;
+                border-color: #34d39933;
+                background: #34d39910;
+            }
+            .method-POST {
+                color: #60a5fa;
+                border-color: #60a5fa33;
+                background: #60a5fa10;
+            }
+            .method-PUT {
+                color: #fbbf24;
+                border-color: #fbbf2433;
+                background: #fbbf2410;
+            }
+            .method-PATCH {
+                color: #a78bfa;
+                border-color: #a78bfa33;
+                background: #a78bfa10;
+            }
+            .method-DELETE {
+                color: #f87171;
+                border-color: #f8717133;
+                background: #f8717110;
+            }
+
+            /* Status badge */
+            .status-2xx {
+                color: #34d399;
+            }
+            .status-3xx {
+                color: #fbbf24;
+            }
+            .status-4xx {
+                color: #f87171;
+            }
+            .status-5xx {
+                color: #f87171;
+            }
+        </style>
+    </head>
+
+    <body
+        class="min-h-screen text-gray-200"
+        x-data="mimicTester()"
+        x-init="init()"
+    >
+        <!-- ── TOP BAR ─────────────────────────────────────────────────────── -->
+        <header
+            class="border-b border-surface-border bg-surface-card sticky top-0 z-10"
+        >
+            <div
+                class="max-w-4xl mx-auto px-6 py-4 flex items-center justify-between"
+            >
+                <!-- Brand -->
+                <div class="flex items-center gap-3">
+                    <span class="text-2xl">🌐</span>
+                    <div>
+                        <div
+                            class="font-bold text-base text-white leading-tight tracking-tight"
+                        >
+                            MimicServer
+                        </div>
+                        <div class="text-xs text-gray-500 font-medium">
+                            API Tester
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Base URL -->
+                <div class="flex items-center gap-2">
+                    <span
+                        class="text-xs text-gray-500 font-medium whitespace-nowrap"
+                        >Base URL</span
+                    >
+                    <input
+                        type="text"
+                        x-model="baseUrl"
+                        placeholder="http://localhost:8080"
+                        class="bg-surface-input border border-surface-border rounded-lg px-3 py-1.5 text-sm font-mono text-gray-300 w-56 transition-colors focus:border-brand-blue"
+                    />
+                    <!-- Server status indicator -->
+                    <div class="flex items-center gap-1.5 ml-1">
+                        <div
+                            class="w-2 h-2 rounded-full pulse"
+                            :class="serverOnline ? 'bg-green-400' : 'bg-gray-600'"
+                        ></div>
+                        <span
+                            class="text-xs font-medium"
+                            :class="serverOnline ? 'text-green-400' : 'text-gray-500'"
+                            x-text="serverOnline ? 'Online' : 'Offline'"
+                        ></span>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- ── MAIN CONTENT ───────────────────────────────────────────────── -->
+        <main class="max-w-4xl mx-auto px-6 py-8 space-y-6">
+            <!-- ── REQUEST CARD ───────────────────────────────────────────── -->
+            <div
+                class="bg-surface-card border border-surface-border rounded-xl p-6 space-y-5"
+            >
+                <h2
+                    class="text-sm font-semibold text-gray-400 uppercase tracking-widest"
+                >
+                    Request
+                </h2>
+
+                <!-- Endpoint Dropdown -->
+                <div class="space-y-2">
+                    <label class="text-xs text-gray-500 font-medium"
+                        >Endpoint</label
+                    >
+                    <select
+                        x-model="selectedIndex"
+                        @change="onEndpointChange()"
+                        class="w-full bg-surface-input border border-surface-border rounded-lg px-4 py-3 text-sm text-gray-200 cursor-pointer transition-colors hover:border-gray-600 focus:border-brand-blue font-mono"
+                    >
+                        <template x-for="(ep, i) in endpoints" :key="i">
+                            <option
+                                :value="i"
+                                x-text="`${ep.method}  ${ep.path}`"
+                            ></option>
+                        </template>
+                    </select>
+                </div>
+
+                <!-- Selected endpoint preview -->
+                <div
+                    class="flex items-center gap-3 px-4 py-3 bg-surface-bg rounded-lg border border-surface-border"
+                >
+                    <!-- Method badge -->
+                    <span
+                        class="text-xs font-bold px-2 py-0.5 rounded border font-mono"
+                        :class="`method-${endpoints[selectedIndex]?.method}`"
+                        x-text="endpoints[selectedIndex]?.method"
+                    ></span>
+                    <!-- Full URL -->
+                    <span class="text-sm font-mono text-gray-400 truncate">
+                        <span class="text-gray-600" x-text="baseUrl"></span
+                        ><span
+                            class="text-gray-300"
+                            x-text="endpoints[selectedIndex]?.path"
+                        ></span>
+                    </span>
+                    <!-- Description -->
+                    <span
+                        class="ml-auto text-xs text-gray-600 whitespace-nowrap"
+                        x-text="endpoints[selectedIndex]?.description"
+                    ></span>
+                </div>
+
+                <!-- Request Body (for POST/PUT/PATCH) -->
+                <div
+                    x-show="['POST','PUT','PATCH'].includes(endpoints[selectedIndex]?.method)"
+                    x-transition
+                    class="space-y-2"
+                >
+                    <label class="text-xs text-gray-500 font-medium"
+                        >Request Body
+                        <span class="text-gray-600">(JSON)</span></label
+                    >
+                    <textarea
+                        x-model="requestBody"
+                        rows="5"
+                        placeholder='{ "key": "value" }'
+                        class="w-full bg-surface-input border border-surface-border rounded-lg px-4 py-3 text-sm font-mono text-gray-300 resize-y transition-colors focus:border-brand-blue placeholder-gray-700"
+                    ></textarea>
+                </div>
+
+                <!-- Send Button -->
+                <button
+                    @click="sendRequest()"
+                    :disabled="loading"
+                    class="w-full flex items-center justify-center gap-2 px-6 py-3 rounded-lg font-semibold text-sm transition-all duration-150"
+                    :class="loading
+            ? 'bg-brand-blue/50 text-white/60 cursor-not-allowed'
+            : 'bg-brand-blue hover:bg-blue-500 text-white active:scale-[0.99]'"
+                >
+                    <!-- Spinner -->
+                    <svg
+                        x-show="loading"
+                        class="spinner w-4 h-4"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                    >
+                        <circle
+                            class="opacity-25"
+                            cx="12"
+                            cy="12"
+                            r="10"
+                            stroke="currentColor"
+                            stroke-width="4"
+                        ></circle>
+                        <path
+                            class="opacity-75"
+                            fill="currentColor"
+                            d="M4 12a8 8 0 018-8v8H4z"
+                        ></path>
+                    </svg>
+                    <!-- Send icon -->
+                    <svg
+                        x-show="!loading"
+                        class="w-4 h-4"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        stroke-width="2"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            d="M13 7l5 5m0 0l-5 5m5-5H6"
+                        />
+                    </svg>
+                    <span
+                        x-text="loading ? 'Sending...' : 'Send Request'"
+                    ></span>
+                </button>
+            </div>
+
+            <!-- ── RESPONSE CARD ───────────────────────────────────────────── -->
+            <div
+                x-show="response !== null || error !== null"
+                x-transition:enter="transition ease-out duration-200"
+                x-transition:enter-start="opacity-0 translate-y-2"
+                x-transition:enter-end="opacity-100 translate-y-0"
+                class="bg-surface-card border border-surface-border rounded-xl p-6 space-y-4"
+            >
+                <!-- Response Meta Row -->
+                <div class="flex items-center justify-between">
+                    <h2
+                        class="text-sm font-semibold text-gray-400 uppercase tracking-widest"
+                    >
+                        Response
+                    </h2>
+                    <div class="flex items-center gap-4">
+                        <!-- Status -->
+                        <div x-show="response" class="flex items-center gap-2">
+                            <span class="text-xs text-gray-500">Status</span>
+                            <span
+                                class="text-sm font-bold font-mono"
+                                :class="statusClass(response?.status)"
+                                x-text="response ? `${response.status} ${response.statusText}` : ''"
+                            ></span>
+                        </div>
+                        <!-- Latency -->
+                        <div x-show="response" class="flex items-center gap-2">
+                            <span class="text-xs text-gray-500">Latency</span>
+                            <span
+                                class="text-sm font-bold font-mono"
+                                :class="latencyClass(latency)"
+                                x-text="latency ? `${latency}ms` : ''"
+                            ></span>
+                        </div>
+                        <!-- Copy button -->
+                        <button
+                            x-show="responseBody"
+                            @click="copyResponse()"
+                            class="flex items-center gap-1.5 text-xs text-gray-500 hover:text-gray-300 transition-colors px-2 py-1 rounded border border-surface-border hover:border-gray-600"
+                        >
+                            <svg
+                                class="w-3.5 h-3.5"
+                                xmlns="http://www.w3.org/2000/svg"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                                stroke-width="2"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
+                                />
+                            </svg>
+                            <span x-text="copied ? 'Copied!' : 'Copy'"></span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Error State -->
+                <div
+                    x-show="error"
+                    class="flex items-start gap-3 px-4 py-3 bg-red-950/40 border border-red-900/50 rounded-lg"
+                >
+                    <svg
+                        class="w-4 h-4 text-red-400 mt-0.5 shrink-0"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        stroke-width="2"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                        />
+                    </svg>
+                    <div>
+                        <div class="text-sm font-semibold text-red-400">
+                            Request Failed
+                        </div>
+                        <div
+                            class="text-xs text-red-400/70 mt-0.5 font-mono"
+                            x-text="error"
+                        ></div>
+                    </div>
+                </div>
+
+                <!-- JSON Response Body -->
+                <div
+                    x-show="responseBody"
+                    class="relative bg-surface-bg border border-surface-border rounded-lg overflow-hidden"
+                >
+                    <!-- Line numbers + code -->
+                    <div class="overflow-auto max-h-96 p-4">
+                        <pre><code class="language-json" x-ref="codeBlock" x-text="responseBody"></code></pre>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── EMPTY STATE ─────────────────────────────────────────────── -->
+            <div
+                x-show="response === null && error === null && !loading"
+                class="text-center py-16 space-y-3"
+            >
+                <div class="text-4xl">📡</div>
+                <div class="text-sm text-gray-600 font-medium">
+                    Select an endpoint and hit
+                    <span class="text-gray-500">Send Request</span>
+                </div>
+                <div class="text-xs text-gray-700">
+                    Make sure MimicServer is running on
+                    <span class="font-mono" x-text="baseUrl"></span>
+                </div>
+            </div>
+        </main>
+
+        <!-- ── ALPINE COMPONENT ───────────────────────────────────────────── -->
+        <script>
+            function mimicTester() {
+                return {
+                    baseUrl: "http://localhost:8080",
+                    selectedIndex: 0,
+                    requestBody: "",
+                    loading: false,
+                    response: null,
+                    responseBody: "",
+                    latency: null,
+                    error: null,
+                    copied: false,
+                    serverOnline: false,
+
+                    endpoints: [
+                        {
+                            method: "GET",
+                            path: "/health",
+                            description: "Health check",
+                        },
+                        {
+                            method: "GET",
+                            path: "/api/auth/me",
+                            description: "Authenticated user",
+                        },
+                        {
+                            method: "POST",
+                            path: "/api/auth/login",
+                            description: "Login",
+                            body: JSON.stringify(
+                                {
+                                    email: "mahadeer@photiclabs.io",
+                                    password: "secret",
+                                },
+                                null,
+                                2,
+                            ),
+                        },
+                        {
+                            method: "GET",
+                            path: "/api/users",
+                            description: "List users",
+                        },
+                        {
+                            method: "GET",
+                            path: "/api/products",
+                            description: "List products",
+                        },
+                        {
+                            method: "POST",
+                            path: "/api/orders",
+                            description: "Create order",
+                            body: JSON.stringify(
+                                { product_id: "prod_001", quantity: 1 },
+                                null,
+                                2,
+                            ),
+                        },
+                        {
+                            method: "GET",
+                            path: "/api/order/ord_78KX92LM",
+                            description: "Order detail",
+                        },
+                        {
+                            method: "POST",
+                            path: "/api/webhooks/stripe",
+                            description: "Stripe webhook",
+                            body: JSON.stringify(
+                                {
+                                    type: "payment_intent.succeeded",
+                                    id: "evt_mock_1A2B3C",
+                                },
+                                null,
+                                2,
+                            ),
+                        },
+                    ],
+
+                    init() {
+                        this.onEndpointChange();
+                        this.pingServer();
+                    },
+
+                    onEndpointChange() {
+                        const ep = this.endpoints[this.selectedIndex];
+                        this.requestBody = ep?.body || "";
+                        // Reset response on endpoint change
+                        this.response = null;
+                        this.responseBody = "";
+                        this.error = null;
+                        this.latency = null;
+                    },
+
+                    async pingServer() {
+                        try {
+                            const res = await fetch(`${this.baseUrl}/health`, {
+                                method: "GET",
+                                signal: AbortSignal.timeout(2000),
+                            });
+                            this.serverOnline = res.ok || res.status < 500;
+                        } catch {
+                            this.serverOnline = false;
+                        }
+                        // Re-ping every 5 seconds
+                        setTimeout(() => this.pingServer(), 5000);
+                    },
+
+                    async sendRequest() {
+                        const ep = this.endpoints[this.selectedIndex];
+                        if (!ep) return;
+
+                        this.loading = true;
+                        this.response = null;
+                        this.responseBody = "";
+                        this.error = null;
+                        this.latency = null;
+
+                        const url = `${this.baseUrl}${ep.path}`;
+                        const isBodyMethod = ["POST", "PUT", "PATCH"].includes(
+                            ep.method,
+                        );
+
+                        const options = {
+                            method: ep.method,
+                            headers: { "Content-Type": "application/json" },
+                        };
+
+                        if (isBodyMethod && this.requestBody.trim()) {
+                            try {
+                                // Validate JSON before sending
+                                JSON.parse(this.requestBody);
+                                options.body = this.requestBody;
+                            } catch {
+                                this.error = "Invalid JSON in request body.";
+                                this.loading = false;
+                                return;
+                            }
+                        }
+
+                        const startTime = performance.now();
+
+                        try {
+                            const res = await fetch(url, options);
+                            const endTime = performance.now();
+                            this.latency = Math.round(endTime - startTime);
+                            this.response = res;
+                            this.serverOnline = true;
+
+                            const text = await res.text();
+                            try {
+                                // Pretty-print JSON
+                                const parsed = JSON.parse(text);
+                                this.responseBody = JSON.stringify(
+                                    parsed,
+                                    null,
+                                    2,
+                                );
+                            } catch {
+                                // Not JSON — show raw
+                                this.responseBody = text;
+                            }
+
+                            // Highlight after DOM update
+                            this.$nextTick(() => {
+                                if (this.$refs.codeBlock) {
+                                    delete this.$refs.codeBlock.dataset
+                                        .highlighted;
+                                    hljs.highlightElement(this.$refs.codeBlock);
+                                }
+                            });
+                        } catch (err) {
+                            const endTime = performance.now();
+                            this.latency = Math.round(endTime - startTime);
+                            this.serverOnline = false;
+
+                            if (
+                                err.name === "TypeError" &&
+                                err.message.includes("fetch")
+                            ) {
+                                this.error = `Cannot connect to ${url} — is MimicServer running?`;
+                            } else {
+                                this.error = err.message;
+                            }
+                        } finally {
+                            this.loading = false;
+                        }
+                    },
+
+                    statusClass(status) {
+                        if (!status) return "";
+                        if (status >= 200 && status < 300) return "status-2xx";
+                        if (status >= 300 && status < 400) return "status-3xx";
+                        if (status >= 400 && status < 500) return "status-4xx";
+                        return "status-5xx";
+                    },
+
+                    latencyClass(ms) {
+                        if (!ms) return "text-gray-400";
+                        if (ms < 100) return "text-green-400";
+                        if (ms < 500) return "text-yellow-400";
+                        return "text-red-400";
+                    },
+
+                    async copyResponse() {
+                        try {
+                            await navigator.clipboard.writeText(
+                                this.responseBody,
+                            );
+                            this.copied = true;
+                            setTimeout(() => (this.copied = false), 2000);
+                        } catch {
+                            // Clipboard not available
+                        }
+                    },
+                };
+            }
+        </script>
+    </body>
+</html>

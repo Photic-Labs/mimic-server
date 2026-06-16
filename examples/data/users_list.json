@@ -1,0 +1,27 @@
+{
+  "data": [
+    {
+      "id": "usr_001",
+      "name": "Mahadeer Mohamed",
+      "email": "mahadeer@photiclabs.io",
+      "status": "active"
+    },
+    {
+      "id": "usr_002",
+      "name": "Arjun Mehta",
+      "email": "arjun@photiclabs.io",
+      "status": "active"
+    },
+    {
+      "id": "usr_003",
+      "name": "Sara Kim",
+      "email": "sara@photiclabs.io",
+      "status": "inactive"
+    }
+  ],
+  "meta": {
+    "total": 3,
+    "page": 1,
+    "per_page": 20
+  }
+}

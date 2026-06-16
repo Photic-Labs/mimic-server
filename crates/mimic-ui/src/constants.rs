@@ -1,0 +1,13 @@
+pub const APP_TITLE: &'static str = "Mimic Server - Sandbox for your backend";
+pub const APP_TITLE_SHORT: &'static str = "Mimic Server";
+pub const DEF_WIDTH: f32 = 1280.0;
+pub const DEF_HEIGHT: f32 = 720.0;
+pub const MIN_WIDTH: f32 = 1280.0;
+pub const MIN_HEIGHT: f32 = 720.0;
+pub const FONT_SIZE_TITLE: f32 = 16.0;
+pub const FONT_SIZE: f32 = 14.0;
+pub const FONT_SIZE_SM: f32 = 12.0;
+pub const DEFAULT_MARGIN: f32 = 24.0;
+pub const MARGIN_LARGE: f32 = 60.0;
+pub const SECTION_SPACING: f32 = 8.0;
+pub const DEFAULT_SPACING: f32 = 4.0;
