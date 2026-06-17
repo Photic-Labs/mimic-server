@@ -1,0 +1,89 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    name: Build (${{ matrix.os }} - ${{ matrix.target }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+            artifact_type: bundle
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+            artifact_type: binary
+          - os: macos-latest
+            target: x86_64-apple-darwin
+            artifact_type: bundle
+          - os: macos-latest
+            target: aarch64-apple-darwin
+            artifact_type: bundle
+
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - name: Install Linux Dependencies (Ubuntu only)
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev \
+            libx11-xcb-dev libgtk-3-dev \
+            libxkbcommon-dev libxkbcommon-x11-dev
+
+      - name: Install Mac DMG Utility (macOS only)
+        if: matrix.os == 'macos-latest'
+        run: brew install create-dmg
+
+      - name: Rust Cache
+        uses: swatinem/rust-cache@v2
+        with:
+          key: ${{ matrix.target }}
+
+      - name: Install cargo-bundle (Mac and Linux only)
+        if: matrix.artifact_type == 'bundle'
+        run: cargo install cargo-bundle
+
+      - name: Build and Bundle (Mac/Linux)
+        if: matrix.artifact_type == 'bundle'
+        run: cargo bundle --release -p mimic-ui --target ${{ matrix.target }} --locked
+
+      - name: Build Raw Binary (Windows)
+        if: matrix.artifact_type == 'binary'
+        run: cargo build --release -p mimic-ui --target ${{ matrix.target }} --locked
+
+      - name: Prepare Artifacts for Release
+        shell: bash
+        run: |
+          mkdir dist
+          if [ "${{ matrix.os }}" = "macos-latest" ]; then
+            # Copy the natively generated .dmg from cargo-bundle
+            cp target/${{ matrix.target }}/release/bundle/dmg/Mimic\ Server.dmg ./dist/MimicServer-${{ matrix.target }}.dmg
+          elif [ "${{ matrix.os }}" = "ubuntu-latest" ]; then
+            # Copy the generated Linux Debian package
+            cp target/${{ matrix.target }}/release/bundle/deb/*.deb ./dist/MimicServer-linux.deb
+          elif [ "${{ matrix.os }}" = "windows-latest" ]; then
+            # Copy the verified Windows executable directly
+            cp target/${{ matrix.target }}/release/MimicServer.exe ./dist/MimicServer-Windows.exe
+          fi
+
+      - name: Upload Binaries to Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*
