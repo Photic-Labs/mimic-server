@@ -62,7 +62,7 @@ jobs:
 
       - name: Build and Bundle (Mac/Linux)
         if: matrix.artifact_type == 'bundle'
-        run: cargo bundle --release -p mimic-ui --target ${{ matrix.target }} --locked
+        run: cargo bundle --release -p mimic-ui --target ${{ matrix.target }}
 
       - name: Build Raw Binary (Windows)
         if: matrix.artifact_type == 'binary'
