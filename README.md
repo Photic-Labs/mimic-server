@@ -166,6 +166,23 @@ X-Powered-By:        MimicServer
 
 ---
 
+## Installation & Setup
+
+Download the latest version for your operating system from the [Releases Page](https://github.com/Photic-Labs/mimic-server/releases).
+
+### 🍏 macOS Installation Note (Gatekeeper)
+Because MimicServer is an independent open-source project built entirely locally, the binaries are currently self-signed. On modern macOS (Apple Silicon/Intel), Gatekeeper will block the application on first launch with a "Move to trash" or "Unidentified developer" warning.
+
+To bypass this and run the app natively:
+1. Drag **Mimic Server.app** into your `/Applications` folder.
+2. Open your terminal and run the following command to clear the macOS quarantine flag:
+   ```bash
+   xattr -cr "/Applications/Mimic Server.app"
+   ```
+
+
+---
+
 ## License
 
 GNU General Public License v3.0 © [PhoticLabs](https://github.com/Photic-Labs)
